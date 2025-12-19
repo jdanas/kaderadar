@@ -10,9 +10,13 @@ build/
 .env.local
 .env.*.local
 
-# Database
+# Database (SQLite files and WAL)
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
 # IDE
 .vscode/
@@ -29,4 +33,4 @@ npm-debug.log*
 # Cache
 .cache/
 .turbo/
-apps/backend/kaderadar.db-shm
+
