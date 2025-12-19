@@ -1,0 +1,16 @@
+# Development Dockerfile for Frontend
+FROM oven/bun:1
+WORKDIR /app
+
+# Copy package.json
+COPY package.json ./
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY . .
+
+EXPOSE 5173
+
+CMD ["bun", "run", "dev", "--", "--host"]

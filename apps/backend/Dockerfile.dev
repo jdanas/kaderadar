@@ -1,0 +1,19 @@
+# Development Dockerfile for Backend
+FROM oven/bun:1
+WORKDIR /app
+
+# Copy package.json
+COPY package.json ./
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY . .
+
+# Create data directory
+RUN mkdir -p /app/data
+
+EXPOSE 3001
+
+CMD ["bun", "run", "dev"]
