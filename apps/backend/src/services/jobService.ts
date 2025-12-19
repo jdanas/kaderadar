@@ -1,0 +1,105 @@
+import db from "../db/database.js";
+import { Job } from "../types/job.js";
+
+export const jobService = {
+  getAllJobs(): Job[] {
+    const stmt = db.prepare(`
+      SELECT * FROM jobs 
+      WHERE is_active = 1 
+      ORDER BY scraped_at DESC
+    `);
+    return stmt.all() as Job[];
+  },
+
+  getJobById(id: number): Job | undefined {
+    const stmt = db.prepare("SELECT * FROM jobs WHERE id = ?");
+    return stmt.get(id) as Job | undefined;
+  },
+
+  searchJobs(query: string): Job[] {
+    const stmt = db.prepare(`
+      SELECT * FROM jobs 
+      WHERE is_active = 1 
+        AND (title LIKE ? OR company LIKE ? OR description LIKE ?)
+      ORDER BY scraped_at DESC
+    `);
+    const searchTerm = `%${query}%`;
+    return stmt.all(searchTerm, searchTerm, searchTerm) as Job[];
+  },
+
+  insertJob(job: Job): number | null {
+    try {
+      const stmt = db.prepare(`
+        INSERT INTO jobs (title, company, location, salary, description, job_type, source_url, source_platform, posted_date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      const result = stmt.run(
+        job.title,
+        job.company,
+        job.location || "Singapore",
+        job.salary || null,
+        job.description || null,
+        job.job_type || null,
+        job.source_url,
+        job.source_platform,
+        job.posted_date || null
+      );
+      return result.lastInsertRowid as number;
+    } catch (_error) {
+      // Likely a duplicate URL, skip silently
+      return null;
+    }
+  },
+
+  insertManyJobs(jobs: Job[]): number {
+    let inserted = 0;
+    const insertStmt = db.prepare(`
+      INSERT OR IGNORE INTO jobs (title, company, location, salary, description, job_type, source_url, source_platform, posted_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const insertMany = db.transaction((jobs: Job[]) => {
+      for (const job of jobs) {
+        const result = insertStmt.run(
+          job.title,
+          job.company,
+          job.location || "Singapore",
+          job.salary || null,
+          job.description || null,
+          job.job_type || null,
+          job.source_url,
+          job.source_platform,
+          job.posted_date || null
+        );
+        if (result.changes > 0) inserted++;
+      }
+    });
+
+    insertMany(jobs);
+    return inserted;
+  },
+
+  deleteJob(id: number): boolean {
+    const stmt = db.prepare("UPDATE jobs SET is_active = 0 WHERE id = ?");
+    const result = stmt.run(id);
+    return result.changes > 0;
+  },
+
+  getStats() {
+    const totalStmt = db.prepare(
+      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1"
+    );
+    const linkedinStmt = db.prepare(
+      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'linkedin'"
+    );
+    const indeedStmt = db.prepare(
+      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'indeed'"
+    );
+
+    return {
+      total: (totalStmt.get() as { count: number }).count,
+      linkedin: (linkedinStmt.get() as { count: number }).count,
+      indeed: (indeedStmt.get() as { count: number }).count,
+    };
+  },
+};
