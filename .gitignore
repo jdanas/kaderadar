@@ -29,3 +29,4 @@ npm-debug.log*
 # Cache
 .cache/
 .turbo/
+apps/backend/kaderadar.db-shm
