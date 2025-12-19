@@ -1,5 +1,5 @@
 import { JobStats } from "@/types/job";
-import { Briefcase, Linkedin } from "lucide-react";
+import { Briefcase, Globe, Search } from "lucide-react";
 
 interface StatsBarProps {
   stats: JobStats | null;
@@ -15,12 +15,16 @@ export function StatsBar({ stats }: StatsBarProps) {
         <span>{stats.total} jobs</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <Linkedin className="h-4 w-4" />
-        <span>{stats.linkedin} from LinkedIn</span>
+        <Globe className="h-4 w-4" />
+        <span>{stats.google} from Google</span>
       </div>
       <div className="flex items-center gap-1.5">
         <span className="font-semibold text-xs">IN</span>
         <span>{stats.indeed} from Indeed</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Search className="h-4 w-4" />
+        <span>{stats.jobstreet + stats.mycareersfuture} from Others</span>
       </div>
     </div>
   );
