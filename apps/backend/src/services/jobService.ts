@@ -2,11 +2,12 @@ import db from "../db/database.js";
 import { Job } from "../types/job.js";
 
 export const jobService = {
-  getAllJobs(): Job[] {
+  getAllJobs(sortBy: "posted_date" | "scraped_at" = "posted_date"): Job[] {
+    const orderColumn = sortBy === "posted_date" ? "posted_date" : "scraped_at";
     const stmt = db.prepare(`
       SELECT * FROM jobs 
       WHERE is_active = 1 
-      ORDER BY scraped_at DESC
+      ORDER BY ${orderColumn} DESC NULLS LAST
     `);
     return stmt.all() as Job[];
   },
@@ -16,12 +17,13 @@ export const jobService = {
     return stmt.get(id) as Job | undefined;
   },
 
-  searchJobs(query: string): Job[] {
+  searchJobs(query: string, sortBy: "posted_date" | "scraped_at" = "posted_date"): Job[] {
+    const orderColumn = sortBy === "posted_date" ? "posted_date" : "scraped_at";
     const stmt = db.prepare(`
       SELECT * FROM jobs 
       WHERE is_active = 1 
         AND (title LIKE ? OR company LIKE ? OR description LIKE ?)
-      ORDER BY scraped_at DESC
+      ORDER BY ${orderColumn} DESC NULLS LAST
     `);
     const searchTerm = `%${query}%`;
     return stmt.all(searchTerm, searchTerm, searchTerm) as Job[];

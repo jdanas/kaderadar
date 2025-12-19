@@ -7,7 +7,9 @@ const router = Router();
 // Get all jobs
 router.get("/", (_req: Request, res: Response) => {
   try {
-    const jobs = jobService.getAllJobs();
+    const sortBy = (_req.query.sortBy as string) || "posted_date";
+    const validSort = sortBy === "scraped_at" ? "scraped_at" : "posted_date";
+    const jobs = jobService.getAllJobs(validSort as "posted_date" | "scraped_at");
     res.json({ success: true, jobs });
   } catch (_error) {
     res.status(500).json({ success: false, error: "Failed to fetch jobs" });
@@ -18,7 +20,9 @@ router.get("/", (_req: Request, res: Response) => {
 router.get("/search", (req: Request, res: Response) => {
   try {
     const query = (req.query.q as string) || "";
-    const jobs = jobService.searchJobs(query);
+    const sortBy = (req.query.sortBy as string) || "posted_date";
+    const validSort = sortBy === "scraped_at" ? "scraped_at" : "posted_date";
+    const jobs = jobService.searchJobs(query, validSort as "posted_date" | "scraped_at");
     res.json({ success: true, jobs });
   } catch (_error) {
     res.status(500).json({ success: false, error: "Failed to search jobs" });
