@@ -89,17 +89,25 @@ export const jobService = {
     const totalStmt = db.prepare(
       "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1"
     );
-    const linkedinStmt = db.prepare(
-      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'linkedin'"
+    const googleStmt = db.prepare(
+      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'google'"
     );
     const indeedStmt = db.prepare(
       "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'indeed'"
     );
+    const jobstreetStmt = db.prepare(
+      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'jobstreet'"
+    );
+    const mycareersfutureStmt = db.prepare(
+      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'mycareersfuture'"
+    );
 
     return {
       total: (totalStmt.get() as { count: number }).count,
-      linkedin: (linkedinStmt.get() as { count: number }).count,
+      google: (googleStmt.get() as { count: number }).count,
       indeed: (indeedStmt.get() as { count: number }).count,
+      jobstreet: (jobstreetStmt.get() as { count: number }).count,
+      mycareersfuture: (mycareersfutureStmt.get() as { count: number }).count,
     };
   },
 };

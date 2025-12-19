@@ -39,22 +39,22 @@ const JOB_SCHEMA = {
 };
 
 export const firecrawlService = {
-  async scrapeLinkedIn(): Promise<ScrapeResult> {
+  async scrapeGoogleJobs(): Promise<ScrapeResult> {
     try {
       const url =
-        "https://www.linkedin.com/jobs/search/?keywords=AI%20Engineer&location=Singapore&geoId=102454443&f_TPR=r604800";
+        "https://www.google.com/search?q=AI+Engineer+jobs+in+Singapore&ibp=htl;jobs";
 
       const result = await firecrawl.scrapeUrl(url, {
         formats: ["extract"],
         extract: {
           schema: JOB_SCHEMA,
           prompt:
-            "Extract all job listings from this LinkedIn jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Only include jobs located in Singapore.",
+            "Extract all job listings from this Google Jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Only include jobs located in Singapore.",
         },
       });
 
       if (!result.success || !result.extract) {
-        return { success: false, jobs: [], error: "Failed to scrape LinkedIn" };
+        return { success: false, jobs: [], error: "Failed to scrape Google Jobs" };
       }
 
       const extractedJobs =
@@ -81,13 +81,13 @@ export const firecrawlService = {
         description: job.description,
         job_type: job.job_type,
         source_url: job.job_url || url,
-        source_platform: "linkedin" as const,
+        source_platform: "google" as const,
         posted_date: job.posted_date,
       }));
 
       return { success: true, jobs };
     } catch (error) {
-      console.error("LinkedIn scrape error:", error);
+      console.error("Google Jobs scrape error:", error);
       return {
         success: false,
         jobs: [],
@@ -152,24 +152,136 @@ export const firecrawlService = {
     }
   },
 
+  async scrapeJobStreet(): Promise<ScrapeResult> {
+    try {
+      const url = "https://www.jobstreet.com.sg/ai-engineer-jobs";
+
+      const result = await firecrawl.scrapeUrl(url, {
+        formats: ["extract"],
+        extract: {
+          schema: JOB_SCHEMA,
+          prompt:
+            "Extract all job listings from this JobStreet page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Only include jobs located in Singapore.",
+        },
+      });
+
+      if (!result.success || !result.extract) {
+        return { success: false, jobs: [], error: "Failed to scrape JobStreet" };
+      }
+
+      const extractedJobs =
+        (
+          result.extract as {
+            jobs?: Array<{
+              title: string;
+              company: string;
+              location?: string;
+              salary?: string;
+              description?: string;
+              job_type?: string;
+              job_url?: string;
+              posted_date?: string;
+            }>;
+          }
+        ).jobs || [];
+
+      const jobs: Job[] = extractedJobs.map((job) => ({
+        title: job.title,
+        company: job.company,
+        location: job.location || "Singapore",
+        salary: job.salary,
+        description: job.description,
+        job_type: job.job_type,
+        source_url: job.job_url || url,
+        source_platform: "jobstreet" as const,
+        posted_date: job.posted_date,
+      }));
+
+      return { success: true, jobs };
+    } catch (error) {
+      console.error("JobStreet scrape error:", error);
+      return {
+        success: false,
+        jobs: [],
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  },
+
+  async scrapeMyCareersFuture(): Promise<ScrapeResult> {
+    try {
+      const url = "https://www.mycareersfuture.gov.sg/search?search=AI%20Engineer&sortBy=new_posting_date&page=0";
+
+      const result = await firecrawl.scrapeUrl(url, {
+        formats: ["extract"],
+        extract: {
+          schema: JOB_SCHEMA,
+          prompt:
+            "Extract all job listings from this MyCareersFuture page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Only include jobs located in Singapore.",
+        },
+      });
+
+      if (!result.success || !result.extract) {
+        return { success: false, jobs: [], error: "Failed to scrape MyCareersFuture" };
+      }
+
+      const extractedJobs =
+        (
+          result.extract as {
+            jobs?: Array<{
+              title: string;
+              company: string;
+              location?: string;
+              salary?: string;
+              description?: string;
+              job_type?: string;
+              job_url?: string;
+              posted_date?: string;
+            }>;
+          }
+        ).jobs || [];
+
+      const jobs: Job[] = extractedJobs.map((job) => ({
+        title: job.title,
+        company: job.company,
+        location: job.location || "Singapore",
+        salary: job.salary,
+        description: job.description,
+        job_type: job.job_type,
+        source_url: job.job_url || url,
+        source_platform: "mycareersfuture" as const,
+        posted_date: job.posted_date,
+      }));
+
+      return { success: true, jobs };
+    } catch (error) {
+      console.error("MyCareersFuture scrape error:", error);
+      return {
+        success: false,
+        jobs: [],
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  },
+
   async scrapeAll(): Promise<ScrapeResult> {
-    const [linkedinResult, indeedResult] = await Promise.all([
-      this.scrapeLinkedIn(),
+    const [googleResult, indeedResult] = await Promise.all([
+      this.scrapeGoogleJobs(),
       this.scrapeIndeed(),
     ]);
 
-    const allJobs = [...linkedinResult.jobs, ...indeedResult.jobs];
+    const allJobs = [...googleResult.jobs, ...indeedResult.jobs];
     const errors: string[] = [];
 
-    if (!linkedinResult.success && linkedinResult.error) {
-      errors.push(`LinkedIn: ${linkedinResult.error}`);
+    if (!googleResult.success && googleResult.error) {
+      errors.push(`Google Jobs: ${googleResult.error}`);
     }
     if (!indeedResult.success && indeedResult.error) {
       errors.push(`Indeed: ${indeedResult.error}`);
     }
 
     return {
-      success: linkedinResult.success || indeedResult.success,
+      success: googleResult.success || indeedResult.success,
       jobs: allJobs,
       error: errors.length > 0 ? errors.join("; ") : undefined,
     };

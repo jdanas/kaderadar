@@ -83,15 +83,22 @@ router.post("/scrape", async (_req: Request, res: Response) => {
 // Scrape specific platform
 router.post("/scrape/:platform", async (req: Request, res: Response) => {
   try {
-    const platform = req.params.platform as "linkedin" | "indeed";
+    const platform = req.params.platform as "google" | "indeed" | "jobstreet" | "mycareersfuture";
 
     let result;
-    if (platform === "linkedin") {
-      result = await firecrawlService.scrapeLinkedIn();
+    if (platform === "google") {
+      result = await firecrawlService.scrapeGoogleJobs();
     } else if (platform === "indeed") {
       result = await firecrawlService.scrapeIndeed();
+    } else if (platform === "jobstreet") {
+      result = await firecrawlService.scrapeJobStreet();
+    } else if (platform === "mycareersfuture") {
+      result = await firecrawlService.scrapeMyCareersFuture();
     } else {
-      res.status(400).json({ success: false, error: "Invalid platform" });
+      res.status(400).json({ 
+        success: false, 
+        error: "Invalid platform. Use 'google', 'indeed', 'jobstreet', or 'mycareersfuture'" 
+      });
       return;
     }
 

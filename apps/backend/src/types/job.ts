@@ -7,7 +7,7 @@ export interface Job {
   description?: string;
   job_type?: string;
   source_url: string;
-  source_platform: "linkedin" | "indeed";
+  source_platform: "indeed" | "google" | "jobstreet" | "mycareersfuture";
   posted_date?: string;
   scraped_at?: string;
   is_active?: boolean;
