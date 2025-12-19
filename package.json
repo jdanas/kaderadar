@@ -1,0 +1,26 @@
+{
+    "name": "kaderadar",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "apps/*"
+    ],
+    "scripts": {
+        "dev": "concurrently -n backend,frontend -c blue,magenta \"bun run dev:backend\" \"bun run dev:frontend\"",
+        "dev:frontend": "cd apps/frontend && bun run dev",
+        "dev:backend": "cd apps/backend && bun run dev",
+        "build": "bun run build:backend && bun run build:frontend",
+        "build:frontend": "cd apps/frontend && bun run build",
+        "build:backend": "cd apps/backend && bun run build",
+        "lint": "bun run lint:backend && bun run lint:frontend",
+        "lint:backend": "cd apps/backend && bun run lint",
+        "lint:frontend": "cd apps/frontend && bun run lint",
+        "docker:build": "docker-compose build",
+        "docker:up": "docker-compose up",
+        "docker:down": "docker-compose down",
+        "docker:dev": "docker-compose up --build"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}
