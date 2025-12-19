@@ -1,6 +1,7 @@
 # KadeRadar 🎯
 
 AI Engineer job aggregator for Singapore using Firecrawl scraping.
+<img width="1551" height="977" alt="image" src="https://github.com/user-attachments/assets/4d1cbd2c-3672-4555-b705-2e9bcea6a4be" />
 
 ## 🚀 Quick Start
 
@@ -155,44 +156,6 @@ docker-compose down -v  # Remove volumes too
 - `POST /api/jobs/scrape` - Scrape all platforms
 - `POST /api/jobs/scrape/:platform` - Scrape specific platform (linkedin|indeed)
 - `DELETE /api/jobs/:id` - Soft delete a job
-
-## 🐛 Troubleshooting
-
-### Issue: `bun run dev` hangs/freezes PC
-
-**Solution**: The issue was caused by mixing `bun` with `npm` workspace commands, creating multiple conflicting processes. This has been fixed in the updated scripts.
-
-If you still experience issues:
-1. Kill all Node/Bun processes: `pkill -f node && pkill -f bun`
-2. Use Docker instead: `docker-compose -f docker-compose.dev.yml up`
-3. Run services individually:
-   ```bash
-   # Terminal 1
-   cd apps/backend && bun run dev
-   
-   # Terminal 2
-   cd apps/frontend && bun run dev
-   ```
-
-### Port Already in Use
-
-```bash
-# Find process using port 3001
-lsof -i :3001
-
-# Kill the process
-kill -9 <PID>
-```
-
-### Docker Issues
-
-```bash
-# Clean Docker cache
-docker system prune -a
-
-# Rebuild without cache
-docker-compose build --no-cache
-```
 
 ## 📝 Environment Variables
 
