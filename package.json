@@ -6,7 +6,8 @@
         "apps/*"
     ],
     "scripts": {
-        "dev": "concurrently -n backend,frontend -c blue,magenta \"bun run dev:backend\" \"bun run dev:frontend\"",
+        "dev": "docker stop ila-backend 2>/dev/null || true && docker-compose -f docker-compose.dev.yml up --build",
+        "dev:local": "concurrently -n backend,frontend -c blue,magenta \"bun run dev:backend\" \"bun run dev:frontend\"",
         "dev:frontend": "cd apps/frontend && bun run dev",
         "dev:backend": "cd apps/backend && bun run dev",
         "build": "bun run build:backend && bun run build:frontend",
