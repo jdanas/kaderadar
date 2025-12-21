@@ -23,7 +23,6 @@ export interface JobStats {
   google: number;
   indeed: number;
   jobstreet: number;
-  mycareersfuture: number;
   careersgov: number;
 }
 

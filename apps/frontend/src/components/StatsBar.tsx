@@ -28,7 +28,7 @@ export function StatsBar({ stats }: StatsBarProps) {
       </div>
       <div className="flex items-center gap-1.5">
         <Search className="h-4 w-4" />
-        <span>{stats.jobstreet + stats.mycareersfuture} Others</span>
+        <span>{stats.jobstreet} JobStreet</span>
       </div>
     </div>
   );

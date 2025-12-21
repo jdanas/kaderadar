@@ -110,9 +110,6 @@ export const jobService = {
     const jobstreetStmt = db.prepare(
       "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'jobstreet'"
     );
-    const mycareersfutureStmt = db.prepare(
-      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'mycareersfuture'"
-    );
     const careersgovStmt = db.prepare(
       "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'careersgov'"
     );
@@ -122,7 +119,6 @@ export const jobService = {
       google: (googleStmt.get() as { count: number }).count,
       indeed: (indeedStmt.get() as { count: number }).count,
       jobstreet: (jobstreetStmt.get() as { count: number }).count,
-      mycareersfuture: (mycareersfutureStmt.get() as { count: number }).count,
       careersgov: (careersgovStmt.get() as { count: number }).count,
     };
   },

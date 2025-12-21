@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { jobService } from "../services/jobService.js";
 import { firecrawlService } from "../services/firecrawlService.js";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // Get all jobs
 router.get("/", (_req: Request, res: Response) => {
@@ -98,7 +98,6 @@ router.post("/scrape/:platform", async (req: Request, res: Response) => {
       | "google"
       | "indeed"
       | "jobstreet"
-      | "mycareersfuture"
       | "careersgov";
 
     let result;
@@ -108,15 +107,13 @@ router.post("/scrape/:platform", async (req: Request, res: Response) => {
       result = await firecrawlService.scrapeIndeed();
     } else if (platform === "jobstreet") {
       result = await firecrawlService.scrapeJobStreet();
-    } else if (platform === "mycareersfuture") {
-      result = await firecrawlService.scrapeMyCareersFuture();
     } else if (platform === "careersgov") {
       result = await firecrawlService.scrapeCareersGov();
     } else {
       res.status(400).json({
         success: false,
         error:
-          "Invalid platform. Use 'google', 'indeed', 'jobstreet', 'mycareersfuture', or 'careersgov'",
+          "Invalid platform. Use 'google', 'indeed', 'jobstreet', or 'careersgov'",
       });
       return;
     }

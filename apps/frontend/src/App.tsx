@@ -43,7 +43,7 @@ function App() {
   const handleScrape = async () => {
     try {
       setScraping(true);
-      setMessage("Scraping jobs from LinkedIn and Indeed...");
+      setMessage("Scraping AI, Full Stack, and Lead Engineer jobs...");
       const result = await api.scrapeJobs();
       setMessage(result.message);
       await fetchJobs();
@@ -71,7 +71,7 @@ function App() {
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">KadeRadar</h1>
                 <p className="text-sm text-muted-foreground">
-                  AI Engineer Jobs in Singapore
+                  AI Engineer, Full Stack AI, & Lead Engineer Jobs in Singapore
                 </p>
               </div>
             </div>
@@ -114,7 +114,6 @@ function App() {
               <option value="google">Google Jobs</option>
               <option value="indeed">Indeed</option>
               <option value="jobstreet">JobStreet</option>
-              <option value="mycareersfuture">MyCareersFuture</option>
               <option value="careersgov">Careers.gov.sg</option>
             </select>
           </div>

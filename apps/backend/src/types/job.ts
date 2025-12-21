@@ -7,12 +7,7 @@ export interface Job {
   description?: string;
   job_type?: string;
   source_url: string;
-  source_platform:
-    | "indeed"
-    | "google"
-    | "jobstreet"
-    | "mycareersfuture"
-    | "careersgov";
+  source_platform: "indeed" | "google" | "jobstreet" | "careersgov";
   posted_date?: string;
   scraped_at?: string;
   is_active?: boolean;

@@ -1,3 +1,4 @@
+// @ts-ignore - bun:sqlite is a valid runtime module
 import { Database } from "bun:sqlite";
 import path from "path";
 
