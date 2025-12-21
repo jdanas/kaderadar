@@ -54,7 +54,11 @@ export const firecrawlService = {
       });
 
       if (!result.success || !result.extract) {
-        return { success: false, jobs: [], error: "Failed to scrape Google Jobs" };
+        return {
+          success: false,
+          jobs: [],
+          error: "Failed to scrape Google Jobs",
+        };
       }
 
       const extractedJobs =
@@ -166,7 +170,11 @@ export const firecrawlService = {
       });
 
       if (!result.success || !result.extract) {
-        return { success: false, jobs: [], error: "Failed to scrape JobStreet" };
+        return {
+          success: false,
+          jobs: [],
+          error: "Failed to scrape JobStreet",
+        };
       }
 
       const extractedJobs =
@@ -210,7 +218,8 @@ export const firecrawlService = {
 
   async scrapeMyCareersFuture(): Promise<ScrapeResult> {
     try {
-      const url = "https://www.mycareersfuture.gov.sg/search?search=AI%20Engineer&sortBy=new_posting_date&page=0";
+      const url =
+        "https://www.mycareersfuture.gov.sg/search?search=AI%20Engineer&sortBy=new_posting_date&page=0";
 
       const result = await firecrawl.scrapeUrl(url, {
         formats: ["extract"],
@@ -222,7 +231,11 @@ export const firecrawlService = {
       });
 
       if (!result.success || !result.extract) {
-        return { success: false, jobs: [], error: "Failed to scrape MyCareersFuture" };
+        return {
+          success: false,
+          jobs: [],
+          error: "Failed to scrape MyCareersFuture",
+        };
       }
 
       const extractedJobs =
@@ -264,13 +277,78 @@ export const firecrawlService = {
     }
   },
 
+  async scrapeCareersGov(): Promise<ScrapeResult> {
+    try {
+      const url = "https://jobs.careers.gov.sg/";
+
+      const result = await firecrawl.scrapeUrl(url, {
+        formats: ["extract"],
+        extract: {
+          schema: JOB_SCHEMA,
+          prompt:
+            "Extract all job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on technology and AI-related positions.",
+        },
+      });
+
+      if (!result.success || !result.extract) {
+        return {
+          success: false,
+          jobs: [],
+          error: "Failed to scrape Careers.gov.sg",
+        };
+      }
+
+      const extractedJobs =
+        (
+          result.extract as {
+            jobs?: Array<{
+              title: string;
+              company: string;
+              location?: string;
+              salary?: string;
+              description?: string;
+              job_type?: string;
+              job_url?: string;
+              posted_date?: string;
+            }>;
+          }
+        ).jobs || [];
+
+      const jobs: Job[] = extractedJobs.map((job) => ({
+        title: job.title,
+        company: job.company,
+        location: job.location || "Singapore",
+        salary: job.salary,
+        description: job.description,
+        job_type: job.job_type,
+        source_url: job.job_url || url,
+        source_platform: "careersgov" as const,
+        posted_date: job.posted_date,
+      }));
+
+      return { success: true, jobs };
+    } catch (error) {
+      console.error("Careers.gov.sg scrape error:", error);
+      return {
+        success: false,
+        jobs: [],
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  },
+
   async scrapeAll(): Promise<ScrapeResult> {
-    const [googleResult, indeedResult] = await Promise.all([
+    const [googleResult, indeedResult, careersgovResult] = await Promise.all([
       this.scrapeGoogleJobs(),
       this.scrapeIndeed(),
+      this.scrapeCareersGov(),
     ]);
 
-    const allJobs = [...googleResult.jobs, ...indeedResult.jobs];
+    const allJobs = [
+      ...googleResult.jobs,
+      ...indeedResult.jobs,
+      ...careersgovResult.jobs,
+    ];
     const errors: string[] = [];
 
     if (!googleResult.success && googleResult.error) {
@@ -279,9 +357,15 @@ export const firecrawlService = {
     if (!indeedResult.success && indeedResult.error) {
       errors.push(`Indeed: ${indeedResult.error}`);
     }
+    if (!careersgovResult.success && careersgovResult.error) {
+      errors.push(`Careers.gov.sg: ${careersgovResult.error}`);
+    }
 
     return {
-      success: googleResult.success || indeedResult.success,
+      success:
+        googleResult.success ||
+        indeedResult.success ||
+        careersgovResult.success,
       jobs: allJobs,
       error: errors.length > 0 ? errors.join("; ") : undefined,
     };

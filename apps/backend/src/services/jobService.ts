@@ -2,14 +2,21 @@ import db from "../db/database.js";
 import { Job } from "../types/job.js";
 
 export const jobService = {
-  getAllJobs(sortBy: "posted_date" | "scraped_at" = "posted_date"): Job[] {
+  getAllJobs(
+    sortBy: "posted_date" | "scraped_at" = "posted_date",
+    platform?: string
+  ): Job[] {
     const orderColumn = sortBy === "posted_date" ? "posted_date" : "scraped_at";
-    const stmt = db.prepare(`
-      SELECT * FROM jobs 
-      WHERE is_active = 1 
-      ORDER BY ${orderColumn} DESC NULLS LAST
-    `);
-    return stmt.all() as Job[];
+    let query = `SELECT * FROM jobs WHERE is_active = 1`;
+
+    if (platform) {
+      query += ` AND source_platform = ?`;
+    }
+
+    query += ` ORDER BY ${orderColumn} DESC NULLS LAST`;
+
+    const stmt = db.prepare(query);
+    return platform ? (stmt.all(platform) as Job[]) : (stmt.all() as Job[]);
   },
 
   getJobById(id: number): Job | undefined {
@@ -17,7 +24,10 @@ export const jobService = {
     return stmt.get(id) as Job | undefined;
   },
 
-  searchJobs(query: string, sortBy: "posted_date" | "scraped_at" = "posted_date"): Job[] {
+  searchJobs(
+    query: string,
+    sortBy: "posted_date" | "scraped_at" = "posted_date"
+  ): Job[] {
     const orderColumn = sortBy === "posted_date" ? "posted_date" : "scraped_at";
     const stmt = db.prepare(`
       SELECT * FROM jobs 
@@ -103,6 +113,9 @@ export const jobService = {
     const mycareersfutureStmt = db.prepare(
       "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'mycareersfuture'"
     );
+    const careersgovStmt = db.prepare(
+      "SELECT COUNT(*) as count FROM jobs WHERE is_active = 1 AND source_platform = 'careersgov'"
+    );
 
     return {
       total: (totalStmt.get() as { count: number }).count,
@@ -110,6 +123,7 @@ export const jobService = {
       indeed: (indeedStmt.get() as { count: number }).count,
       jobstreet: (jobstreetStmt.get() as { count: number }).count,
       mycareersfuture: (mycareersfutureStmt.get() as { count: number }).count,
+      careersgov: (careersgovStmt.get() as { count: number }).count,
     };
   },
 };

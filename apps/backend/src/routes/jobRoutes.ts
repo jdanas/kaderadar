@@ -8,8 +8,12 @@ const router = Router();
 router.get("/", (_req: Request, res: Response) => {
   try {
     const sortBy = (_req.query.sortBy as string) || "posted_date";
+    const platform = _req.query.platform as string | undefined;
     const validSort = sortBy === "scraped_at" ? "scraped_at" : "posted_date";
-    const jobs = jobService.getAllJobs(validSort as "posted_date" | "scraped_at");
+    const jobs = jobService.getAllJobs(
+      validSort as "posted_date" | "scraped_at",
+      platform
+    );
     res.json({ success: true, jobs });
   } catch (_error) {
     res.status(500).json({ success: false, error: "Failed to fetch jobs" });
@@ -22,7 +26,10 @@ router.get("/search", (req: Request, res: Response) => {
     const query = (req.query.q as string) || "";
     const sortBy = (req.query.sortBy as string) || "posted_date";
     const validSort = sortBy === "scraped_at" ? "scraped_at" : "posted_date";
-    const jobs = jobService.searchJobs(query, validSort as "posted_date" | "scraped_at");
+    const jobs = jobService.searchJobs(
+      query,
+      validSort as "posted_date" | "scraped_at"
+    );
     res.json({ success: true, jobs });
   } catch (_error) {
     res.status(500).json({ success: false, error: "Failed to search jobs" });
@@ -87,7 +94,12 @@ router.post("/scrape", async (_req: Request, res: Response) => {
 // Scrape specific platform
 router.post("/scrape/:platform", async (req: Request, res: Response) => {
   try {
-    const platform = req.params.platform as "google" | "indeed" | "jobstreet" | "mycareersfuture";
+    const platform = req.params.platform as
+      | "google"
+      | "indeed"
+      | "jobstreet"
+      | "mycareersfuture"
+      | "careersgov";
 
     let result;
     if (platform === "google") {
@@ -98,10 +110,13 @@ router.post("/scrape/:platform", async (req: Request, res: Response) => {
       result = await firecrawlService.scrapeJobStreet();
     } else if (platform === "mycareersfuture") {
       result = await firecrawlService.scrapeMyCareersFuture();
+    } else if (platform === "careersgov") {
+      result = await firecrawlService.scrapeCareersGov();
     } else {
-      res.status(400).json({ 
-        success: false, 
-        error: "Invalid platform. Use 'google', 'indeed', 'jobstreet', or 'mycareersfuture'" 
+      res.status(400).json({
+        success: false,
+        error:
+          "Invalid platform. Use 'google', 'indeed', 'jobstreet', 'mycareersfuture', or 'careersgov'",
       });
       return;
     }

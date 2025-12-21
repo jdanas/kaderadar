@@ -3,8 +3,11 @@ import { Job, JobStats, ApiResponse } from "@/types/job";
 const API_BASE = "/api";
 
 export const api = {
-  async getJobs(): Promise<Job[]> {
-    const res = await fetch(`${API_BASE}/jobs`);
+  async getJobs(platform?: string): Promise<Job[]> {
+    const url = platform
+      ? `${API_BASE}/jobs?platform=${platform}`
+      : `${API_BASE}/jobs`;
+    const res = await fetch(url);
     const data: ApiResponse<Job> = await res.json();
     if (!data.success) throw new Error(data.error || "Failed to fetch jobs");
     return data.jobs || [];

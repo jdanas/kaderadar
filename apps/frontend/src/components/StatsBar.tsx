@@ -16,15 +16,19 @@ export function StatsBar({ stats }: StatsBarProps) {
       </div>
       <div className="flex items-center gap-1.5">
         <Globe className="h-4 w-4" />
-        <span>{stats.google} from Google</span>
+        <span>{stats.google} Google</span>
       </div>
       <div className="flex items-center gap-1.5">
         <span className="font-semibold text-xs">IN</span>
-        <span>{stats.indeed} from Indeed</span>
+        <span>{stats.indeed} Indeed</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="font-semibold text-xs">SG</span>
+        <span>{stats.careersgov} Gov</span>
       </div>
       <div className="flex items-center gap-1.5">
         <Search className="h-4 w-4" />
-        <span>{stats.jobstreet + stats.mycareersfuture} from Others</span>
+        <span>{stats.jobstreet + stats.mycareersfuture} Others</span>
       </div>
     </div>
   );
