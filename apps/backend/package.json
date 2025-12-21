@@ -4,9 +4,9 @@
     "main": "dist/server.js",
     "type": "module",
     "scripts": {
-        "dev": "tsx watch src/server.ts",
-        "build": "tsx src/server.ts",
-        "start": "node dist/server.js",
+        "dev": "bun --watch src/server.ts",
+        "build": "bun build src/server.ts --outdir dist --target node",
+        "start": "bun src/server.ts",
         "lint": "eslint src/**/*.ts",
         "lint:fix": "eslint src/**/*.ts --fix"
     },
