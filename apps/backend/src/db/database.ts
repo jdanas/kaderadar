@@ -1,14 +1,14 @@
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import path from "path";
 
 const dbPath = path.join(process.cwd(), "kaderadar.db");
 const db = new Database(dbPath);
 
 // Enable WAL mode for better performance
-db.pragma("journal_mode = WAL");
+db.run("PRAGMA journal_mode = WAL");
 
 // Create tables
-db.exec(`
+db.run(`
   CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
