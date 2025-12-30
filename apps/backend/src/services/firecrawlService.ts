@@ -101,7 +101,7 @@ export const firecrawlService = {
   async scrapeGoogleJobs(): Promise<ScrapeResult> {
     try {
       const url =
-        "https://www.google.com/search?q=AI+Engineer+OR+Machine+Learning+Engineer+OR+Full+Stack+AI+Engineer+OR+Lead+AI+Engineer+jobs+in+Singapore&ibp=htl;jobs";
+        "https://www.google.com/search?q=AI+Engineer+OR+Machine+Learning+Engineer+OR+Full+Stack+Engineer+OR+Software+Engineer+OR+Full+Stack+Developer+jobs+in+Singapore&ibp=htl;jobs";
 
       // Google jobs often infinite scrolls, so we add scroll actions
       const actions = [
@@ -116,7 +116,7 @@ export const firecrawlService = {
       const jobs = await scrapeAndExtract(
         [url],
         "google",
-        "Extract all job listings from this Google Jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Machine Learning Engineer, Full Stack AI Developer, Full Stack Engineer with AI/ML experience, and Lead Engineer positions related to AI/ML. Only include jobs located in Singapore.",
+        "Extract all job listings from this Google Jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Machine Learning Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and Lead Engineer positions. Only include jobs located in Singapore.",
         actions
       );
 
@@ -134,7 +134,7 @@ export const firecrawlService = {
   async scrapeIndeed(): Promise<ScrapeResult> {
     try {
       const baseUrl =
-        "https://sg.indeed.com/jobs?q=AI+Engineer+OR+Full+Stack+AI+OR+Lead+Engineer+AI+OR+Machine+Learning+Engineer&l=Singapore";
+        "https://sg.indeed.com/jobs?q=AI+Engineer+OR+Full+Stack+Engineer+OR+Software+Engineer+OR+Full+Stack+Developer&l=Singapore";
       
       // Scrape first 2 pages
       const urls = [
@@ -153,7 +153,7 @@ export const firecrawlService = {
       const jobs = await scrapeAndExtract(
         urls,
         "indeed",
-        "Extract all job listings from this Indeed jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Look for job cards or list items. Focus on AI Engineer, Full Stack Developer/Engineer with AI/ML, Lead Engineer (AI/ML), and Machine Learning Engineer roles. Only include jobs located in Singapore.",
+        "Extract all job listings from this Indeed jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Look for job cards or list items. Focus on AI Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and Machine Learning Engineer roles. Only include jobs located in Singapore.",
         actions
       );
 
@@ -171,7 +171,7 @@ export const firecrawlService = {
   async scrapeJobStreet(): Promise<ScrapeResult> {
     try {
       const baseUrl =
-        "https://www.jobstreet.com.sg/ai-engineer-jobs?keywords=AI%20Engineer%20OR%20Full%20Stack%20AI%20OR%20Lead%20Engineer";
+        "https://www.jobstreet.com.sg/jobs?keywords=AI%20Engineer%20OR%20Full%20Stack%20Engineer%20OR%20Software%20Engineer%20OR%20Full%20Stack%20Developer";
       
       // Scrape first 2 pages (page 1 is default, page 2 added)
       const urls = [
@@ -188,7 +188,7 @@ export const firecrawlService = {
       const jobs = await scrapeAndExtract(
         urls,
         "jobstreet",
-        "Extract all job listings from this JobStreet page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Developer with AI/ML, Lead Engineer (AI), and related technical roles. Only include jobs located in Singapore.",
+        "Extract all job listings from this JobStreet page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and related technical roles. Only include jobs located in Singapore.",
         actions
       );
 
@@ -221,7 +221,7 @@ export const firecrawlService = {
       const jobs = await scrapeAndExtract(
         [url],
         "careersgov",
-        "Extract all job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Developer with AI/ML experience, Lead Engineer, Machine Learning, Data Science, and technology positions related to AI/ML.",
+        "Extract all job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, Machine Learning, Data Science, and technology positions related to AI/ML.",
         actions
       );
 
