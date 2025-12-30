@@ -26,6 +26,13 @@ export interface JobStats {
   careersgov: number;
 }
 
+export interface PaginationMetadata {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   error?: string;
@@ -35,4 +42,5 @@ export interface ApiResponse<T> {
   message?: string;
   scraped?: number;
   inserted?: number;
+  pagination?: PaginationMetadata;
 }

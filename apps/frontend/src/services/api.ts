@@ -1,32 +1,41 @@
-import { Job, JobStats, ApiResponse } from "@/types/job";
+import { Job, JobStats, ApiResponse, PaginationMetadata } from "@/types/job";
 
 const API_BASE = "/api";
 
 export const api = {
-  async getJobs(platform?: string): Promise<Job[]> {
-    const url = platform
-      ? `${API_BASE}/jobs?platform=${platform}`
-      : `${API_BASE}/jobs`;
+  async getJobs(
+    platform?: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ jobs: Job[]; pagination?: PaginationMetadata }> {
+    let url = `${API_BASE}/jobs?page=${page}&limit=${limit}`;
+    if (platform) {
+      url += `&platform=${platform}`;
+    }
     const res = await fetch(url);
     const data: ApiResponse<Job> = await res.json();
     if (!data.success) throw new Error(data.error || "Failed to fetch jobs");
-    return data.jobs || [];
+    return { jobs: data.jobs || [], pagination: data.pagination };
   },
 
-  async searchJobs(query: string): Promise<Job[]> {
+  async searchJobs(
+    query: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ jobs: Job[]; pagination?: PaginationMetadata }> {
     const res = await fetch(
-      `${API_BASE}/jobs/search?q=${encodeURIComponent(query)}`
+      `${API_BASE}/jobs/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
     );
     const data: ApiResponse<Job> = await res.json();
     if (!data.success) throw new Error(data.error || "Failed to search jobs");
-    return data.jobs || [];
+    return { jobs: data.jobs || [], pagination: data.pagination };
   },
 
   async getStats(): Promise<JobStats> {
     const res = await fetch(`${API_BASE}/jobs/stats`);
     const data: ApiResponse<Job> = await res.json();
     if (!data.success) throw new Error(data.error || "Failed to fetch stats");
-    return data.stats || { total: 0, linkedin: 0, indeed: 0 };
+    return data.stats || { total: 0, google: 0, indeed: 0, jobstreet: 0, careersgov: 0 };
   },
 
   async scrapeJobs(): Promise<{
@@ -46,7 +55,7 @@ export const api = {
   },
 
   async scrapePlatform(
-    platform: "linkedin" | "indeed"
+    platform: "google" | "indeed" | "jobstreet" | "careersgov"
   ): Promise<{ scraped: number; inserted: number; message: string }> {
     const res = await fetch(`${API_BASE}/jobs/scrape/${platform}`, {
       method: "POST",

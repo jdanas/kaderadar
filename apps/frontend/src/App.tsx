@@ -6,7 +6,7 @@ import { JobCardSkeleton } from "@/components/JobCardSkeleton";
 import { StatsBar } from "@/components/StatsBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw, Radar } from "lucide-react";
+import { Search, RefreshCw, Radar, ChevronLeft, ChevronRight } from "lucide-react";
 
 function App() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -16,17 +16,30 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("");
   const [message, setMessage] = useState("");
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const LIMIT = 20;
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, platformFilter]);
 
   const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
       const [jobsData, statsData] = await Promise.all([
         searchQuery
-          ? api.searchJobs(searchQuery)
-          : api.getJobs(platformFilter || undefined),
+          ? api.searchJobs(searchQuery, page, LIMIT)
+          : api.getJobs(platformFilter || undefined, page, LIMIT),
         api.getStats(),
       ]);
-      setJobs(jobsData);
+      setJobs(jobsData.jobs);
+      if (jobsData.pagination) {
+        setTotalPages(jobsData.pagination.totalPages);
+      }
       setStats(statsData);
     } catch (error) {
       console.error("Failed to fetch jobs:", error);
@@ -34,7 +47,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, platformFilter]);
+  }, [searchQuery, platformFilter, page]);
 
   useEffect(() => {
     fetchJobs();
@@ -57,7 +70,15 @@ function App() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchJobs();
+    setPage(1); // Reset to page 1 on new search
+    // fetchJobs will be triggered by page or query change
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
@@ -126,7 +147,7 @@ function App() {
         )}
 
         {/* Jobs Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => <JobCardSkeleton key={i} />)
           ) : jobs.length > 0 ? (
@@ -141,6 +162,33 @@ function App() {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {!loading && jobs.length > 0 && (
+          <div className="flex items-center justify-center gap-4 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page <= 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page >= totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        )}
       </main>
 
       {/* Footer */}

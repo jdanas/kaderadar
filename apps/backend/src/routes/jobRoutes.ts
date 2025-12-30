@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { jobService } from "../services/jobService.js";
 import { firecrawlService } from "../services/firecrawlService.js";
+import { calculatePagination } from "../utils/pagination.js";
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -12,7 +13,10 @@ router.get("/", (req: Request, res: Response) => {
     const sortBy = (req.query.sortBy as string) || "posted_date";
     const platform = req.query.platform as string | undefined;
 
-    const offset = (page - 1) * limit;
+    const { offset, totalPages: calcTotalPages } = calculatePagination({
+      page,
+      limit,
+    });
     const validSort = sortBy === "scraped_at" ? "scraped_at" : "posted_date";
 
     const jobs = jobService.getAllJobs(
@@ -23,7 +27,7 @@ router.get("/", (req: Request, res: Response) => {
     );
 
     const total = jobService.getJobCount(platform);
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = calcTotalPages(total);
 
     res.json({
       success: true,
@@ -48,7 +52,10 @@ router.get("/search", (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 20;
     const sortBy = (req.query.sortBy as string) || "posted_date";
 
-    const offset = (page - 1) * limit;
+    const { offset, totalPages: calcTotalPages } = calculatePagination({
+      page,
+      limit,
+    });
     const validSort = sortBy === "scraped_at" ? "scraped_at" : "posted_date";
 
     const jobs = jobService.searchJobs(
@@ -59,7 +66,7 @@ router.get("/search", (req: Request, res: Response) => {
     );
 
     const total = jobService.getSearchJobCount(query);
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = calcTotalPages(total);
 
     res.json({
       success: true,
