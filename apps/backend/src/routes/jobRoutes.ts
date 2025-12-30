@@ -4,33 +4,73 @@ import { firecrawlService } from "../services/firecrawlService.js";
 
 const router: ReturnType<typeof Router> = Router();
 
-// Get all jobs
-router.get("/", (_req: Request, res: Response) => {
+// Get all jobs with pagination
+router.get("/", (req: Request, res: Response) => {
   try {
-    const sortBy = (_req.query.sortBy as string) || "posted_date";
-    const platform = _req.query.platform as string | undefined;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const sortBy = (req.query.sortBy as string) || "posted_date";
+    const platform = req.query.platform as string | undefined;
+
+    const offset = (page - 1) * limit;
     const validSort = sortBy === "scraped_at" ? "scraped_at" : "posted_date";
+
     const jobs = jobService.getAllJobs(
+      limit,
+      offset,
       validSort as "posted_date" | "scraped_at",
       platform
     );
-    res.json({ success: true, jobs });
+
+    const total = jobService.getJobCount(platform);
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      success: true,
+      jobs,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+    });
   } catch (_error) {
     res.status(500).json({ success: false, error: "Failed to fetch jobs" });
   }
 });
 
-// Search jobs
+// Search jobs with pagination
 router.get("/search", (req: Request, res: Response) => {
   try {
     const query = (req.query.q as string) || "";
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
     const sortBy = (req.query.sortBy as string) || "posted_date";
+
+    const offset = (page - 1) * limit;
     const validSort = sortBy === "scraped_at" ? "scraped_at" : "posted_date";
+
     const jobs = jobService.searchJobs(
       query,
+      limit,
+      offset,
       validSort as "posted_date" | "scraped_at"
     );
-    res.json({ success: true, jobs });
+
+    const total = jobService.getSearchJobCount(query);
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      success: true,
+      jobs,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+    });
   } catch (_error) {
     res.status(500).json({ success: false, error: "Failed to search jobs" });
   }

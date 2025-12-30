@@ -3,20 +3,39 @@ import { Job } from "../types/job.js";
 
 export const jobService = {
   getAllJobs(
+    limit: number,
+    offset: number,
     sortBy: "posted_date" | "scraped_at" = "posted_date",
     platform?: string
   ): Job[] {
     const orderColumn = sortBy === "posted_date" ? "posted_date" : "scraped_at";
     let query = `SELECT * FROM jobs WHERE is_active = 1`;
+    const params: any[] = [];
 
     if (platform) {
       query += ` AND source_platform = ?`;
+      params.push(platform);
     }
 
-    query += ` ORDER BY ${orderColumn} DESC NULLS LAST`;
+    query += ` ORDER BY ${orderColumn} DESC NULLS LAST LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
 
     const stmt = db.prepare(query);
-    return platform ? (stmt.all(platform) as Job[]) : (stmt.all() as Job[]);
+    return stmt.all(...params) as Job[];
+  },
+
+  getJobCount(platform?: string): number {
+    let query = `SELECT COUNT(*) as count FROM jobs WHERE is_active = 1`;
+    const params: any[] = [];
+
+    if (platform) {
+      query += ` AND source_platform = ?`;
+      params.push(platform);
+    }
+
+    const stmt = db.prepare(query);
+    const result = stmt.get(...params) as { count: number };
+    return result.count;
   },
 
   getJobById(id: number): Job | undefined {
@@ -26,6 +45,8 @@ export const jobService = {
 
   searchJobs(
     query: string,
+    limit: number,
+    offset: number,
     sortBy: "posted_date" | "scraped_at" = "posted_date"
   ): Job[] {
     const orderColumn = sortBy === "posted_date" ? "posted_date" : "scraped_at";
@@ -34,9 +55,21 @@ export const jobService = {
       WHERE is_active = 1 
         AND (title LIKE ? OR company LIKE ? OR description LIKE ?)
       ORDER BY ${orderColumn} DESC NULLS LAST
+      LIMIT ? OFFSET ?
     `);
     const searchTerm = `%${query}%`;
-    return stmt.all(searchTerm, searchTerm, searchTerm) as Job[];
+    return stmt.all(searchTerm, searchTerm, searchTerm, limit, offset) as Job[];
+  },
+
+  getSearchJobCount(query: string): number {
+    const stmt = db.prepare(`
+      SELECT COUNT(*) as count FROM jobs 
+      WHERE is_active = 1 
+        AND (title LIKE ? OR company LIKE ? OR description LIKE ?)
+    `);
+    const searchTerm = `%${query}%`;
+    const result = stmt.get(searchTerm, searchTerm, searchTerm) as { count: number };
+    return result.count;
   },
 
   insertJob(job: Job): number | null {

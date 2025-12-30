@@ -109,6 +109,8 @@ export const firecrawlService = {
         { type: "wait", milliseconds: 1000 },
         { type: "scroll", direction: "down" },
         { type: "wait", milliseconds: 1000 },
+        { type: "scroll", direction: "down" },
+        { type: "wait", milliseconds: 1000 },
       ];
 
       const jobs = await scrapeAndExtract(
@@ -140,10 +142,19 @@ export const firecrawlService = {
         `${baseUrl}&start=10`
       ];
 
+      // Indeed might lazy load some content or detect bots. Scrolling helps.
+      const actions = [
+        { type: "scroll", direction: "down" },
+        { type: "wait", milliseconds: 1500 },
+        { type: "scroll", direction: "down" },
+        { type: "wait", milliseconds: 1500 }
+      ];
+
       const jobs = await scrapeAndExtract(
         urls,
         "indeed",
-        "Extract all job listings from this Indeed jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Developer/Engineer with AI/ML, Lead Engineer (AI/ML), and Machine Learning Engineer roles. Only include jobs located in Singapore."
+        "Extract all job listings from this Indeed jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Look for job cards or list items. Focus on AI Engineer, Full Stack Developer/Engineer with AI/ML, Lead Engineer (AI/ML), and Machine Learning Engineer roles. Only include jobs located in Singapore.",
+        actions
       );
 
       return { success: true, jobs };
@@ -168,10 +179,17 @@ export const firecrawlService = {
         `${baseUrl}&pg=2`
       ];
 
+      // JobStreet is relatively static but scrolling doesn't hurt to ensure everything is in viewport
+      const actions = [
+        { type: "scroll", direction: "down" },
+        { type: "wait", milliseconds: 1000 }
+      ];
+
       const jobs = await scrapeAndExtract(
         urls,
         "jobstreet",
-        "Extract all job listings from this JobStreet page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Developer with AI/ML, Lead Engineer (AI), and related technical roles. Only include jobs located in Singapore."
+        "Extract all job listings from this JobStreet page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Developer with AI/ML, Lead Engineer (AI), and related technical roles. Only include jobs located in Singapore.",
+        actions
       );
 
       return { success: true, jobs };
@@ -189,10 +207,22 @@ export const firecrawlService = {
     try {
       const url = "https://jobs.careers.gov.sg/";
       
+      // Careers.gov.sg is a SPA and might require interaction to see more jobs if we don't have deep link pagination
+      // We will scroll aggressively to trigger any lazy loading
+      const actions = [
+        { type: "scroll", direction: "down" },
+        { type: "wait", milliseconds: 2000 },
+        { type: "scroll", direction: "down" },
+        { type: "wait", milliseconds: 2000 },
+        { type: "scroll", direction: "down" },
+        { type: "wait", milliseconds: 2000 }
+      ];
+
       const jobs = await scrapeAndExtract(
         [url],
         "careersgov",
-        "Extract all job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Developer with AI/ML experience, Lead Engineer, Machine Learning, Data Science, and technology positions related to AI/ML."
+        "Extract all job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Developer with AI/ML experience, Lead Engineer, Machine Learning, Data Science, and technology positions related to AI/ML.",
+        actions
       );
 
       return { success: true, jobs };
