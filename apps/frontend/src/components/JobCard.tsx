@@ -16,9 +16,8 @@ export function JobCard({ job, isApplied = false, onApply }: JobCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
-            <CardTitle className="text-lg leading-tight flex items-center gap-2">
+            <CardTitle className="text-lg leading-tight">
               {job.title}
-              {isApplied && <CheckCircle className="h-4 w-4 text-green-500" />}
             </CardTitle>
             <div className="flex items-center gap-1 text-muted-foreground text-sm">
               <Building2 className="h-3.5 w-3.5" />
@@ -65,13 +64,18 @@ export function JobCard({ job, isApplied = false, onApply }: JobCardProps) {
           <Button 
             variant={isApplied ? "secondary" : "outline"} 
             size="sm" 
-            asChild 
+            asChild={!isApplied}
             className="ml-auto"
             onClick={onApply}
+            disabled={isApplied}
           >
-            <a href={job.source_url} target="_blank" rel="noopener noreferrer">
-              {isApplied ? "Applied" : "Apply"} <ExternalLink className="h-3.5 w-3.5 ml-2" />
-            </a>
+            {isApplied ? (
+              <span>Applied</span>
+            ) : (
+              <a href={job.source_url} target="_blank" rel="noopener noreferrer">
+                Apply <ExternalLink className="h-3.5 w-3.5 ml-2" />
+              </a>
+            )}
           </Button>
         </div>
       </CardContent>
