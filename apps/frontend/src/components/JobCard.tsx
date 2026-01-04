@@ -2,7 +2,7 @@ import { Job } from "@/types/job";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, MapPin, Building2, Banknote, CheckCircle } from "lucide-react";
+import { ExternalLink, MapPin, Building2, Banknote } from "lucide-react";
 
 interface JobCardProps {
   job: Job;
