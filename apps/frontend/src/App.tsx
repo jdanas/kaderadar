@@ -16,6 +16,28 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("");
   const [message, setMessage] = useState("");
+
+  const [appliedJobs, setAppliedJobs] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("appliedJobs");
+      if (stored) {
+        setAppliedJobs(new Set(JSON.parse(stored)));
+      }
+    } catch (e) {
+      console.error("Failed to parse applied jobs from local storage", e);
+    }
+  }, []);
+
+  const handleMarkApplied = (jobId: number) => {
+    setAppliedJobs((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(jobId);
+      localStorage.setItem("appliedJobs", JSON.stringify(Array.from(newSet)));
+      return newSet;
+    });
+  };
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -151,7 +173,14 @@ function App() {
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => <JobCardSkeleton key={i} />)
           ) : jobs.length > 0 ? (
-            jobs.map((job) => <JobCard key={job.id} job={job} />)
+            jobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                isApplied={appliedJobs.has(job.id)}
+                onApply={() => handleMarkApplied(job.id)}
+              />
+            ))
           ) : (
             <div className="col-span-full text-center py-12 text-muted-foreground">
               <Radar className="h-12 w-12 mx-auto mb-4 opacity-50" />

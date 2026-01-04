@@ -2,19 +2,24 @@ import { Job } from "@/types/job";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, MapPin, Building2, Banknote } from "lucide-react";
+import { ExternalLink, MapPin, Building2, Banknote, CheckCircle } from "lucide-react";
 
 interface JobCardProps {
   job: Job;
+  isApplied?: boolean;
+  onApply?: () => void;
 }
 
-export function JobCard({ job }: JobCardProps) {
+export function JobCard({ job, isApplied = false, onApply }: JobCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={`hover:shadow-md transition-shadow ${isApplied ? 'border-green-200 bg-green-50/10' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
-            <CardTitle className="text-lg leading-tight">{job.title}</CardTitle>
+            <CardTitle className="text-lg leading-tight flex items-center gap-2">
+              {job.title}
+              {isApplied && <CheckCircle className="h-4 w-4 text-green-500" />}
+            </CardTitle>
             <div className="flex items-center gap-1 text-muted-foreground text-sm">
               <Building2 className="h-3.5 w-3.5" />
               <span>{job.company}</span>
@@ -57,9 +62,15 @@ export function JobCard({ job }: JobCardProps) {
               Posted: {job.posted_date}
             </span>
           )}
-          <Button variant="outline" size="sm" asChild className="ml-auto">
+          <Button 
+            variant={isApplied ? "secondary" : "outline"} 
+            size="sm" 
+            asChild 
+            className="ml-auto"
+            onClick={onApply}
+          >
             <a href={job.source_url} target="_blank" rel="noopener noreferrer">
-              Apply <ExternalLink className="h-3.5 w-3.5" />
+              {isApplied ? "Applied" : "Apply"} <ExternalLink className="h-3.5 w-3.5 ml-2" />
             </a>
           </Button>
         </div>
