@@ -137,19 +137,16 @@ export const firecrawlService = {
     try {
       const baseUrl =
         "https://sg.indeed.com/jobs?q=AI+Engineer+OR+Full+Stack+Engineer+OR+Software+Engineer+OR+Full+Stack+Developer&l=Singapore";
-      
+
       // Scrape first 2 pages
-      const urls = [
-        baseUrl,
-        `${baseUrl}&start=10`
-      ];
+      const urls = [baseUrl, `${baseUrl}&start=10`];
 
       // Indeed might lazy load some content or detect bots. Scrolling helps.
       const actions = [
         { type: "scroll", direction: "down" },
         { type: "wait", milliseconds: 1500 },
         { type: "scroll", direction: "down" },
-        { type: "wait", milliseconds: 1500 }
+        { type: "wait", milliseconds: 1500 },
       ];
 
       const jobs = await scrapeAndExtract(
@@ -174,17 +171,14 @@ export const firecrawlService = {
     try {
       const baseUrl =
         "https://www.jobstreet.com.sg/jobs?keywords=AI%20Engineer%20OR%20Full%20Stack%20Engineer%20OR%20Software%20Engineer%20OR%20Full%20Stack%20Developer";
-      
+
       // Scrape first 2 pages (page 1 is default, page 2 added)
-      const urls = [
-        baseUrl,
-        `${baseUrl}&pg=2`
-      ];
+      const urls = [baseUrl, `${baseUrl}&pg=2`];
 
       // JobStreet is relatively static but scrolling doesn't hurt to ensure everything is in viewport
       const actions = [
         { type: "scroll", direction: "down" },
-        { type: "wait", milliseconds: 1000 }
+        { type: "wait", milliseconds: 1000 },
       ];
 
       const jobs = await scrapeAndExtract(
@@ -215,7 +209,7 @@ export const firecrawlService = {
       // Build URL with filters
       let url = "https://jobs.careers.gov.sg/";
       const params = new URLSearchParams();
-      
+
       if (options?.department) {
         params.append("d", options.department);
       }
@@ -225,17 +219,17 @@ export const firecrawlService = {
       if (options?.experienceLevels && options.experienceLevels.length > 0) {
         params.append("e", options.experienceLevels.join(";"));
       }
-      
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-      
+
       // Optimize scrolling to avoid timeout:
       // - Reduce wait time between scrolls
       // - Default to 5 pages for reliable performance
       const maxPages = Math.min(options?.maxPages || 5, 10); // Default 5, cap at 10 pages
       const actions = [];
-      
+
       // Strategy: Scroll more frequently with shorter waits
       // This loads content faster while staying within timeout limits
       for (let i = 0; i < maxPages; i++) {
@@ -246,7 +240,7 @@ export const firecrawlService = {
       }
 
       // Calculate timeout: (scrolls * 1.5s + 20s buffer) in milliseconds
-      const estimatedTime = (maxPages * 1.5) + 20;
+      const estimatedTime = maxPages * 1.5 + 20;
       const timeout = Math.max(estimatedTime * 1000, 90000); // At least 90s
 
       const jobs = await scrapeAndExtract(
@@ -261,24 +255,24 @@ export const firecrawlService = {
       const filteredJobs = jobs.filter((job) => {
         const titleLower = job.title.toLowerCase();
         const keywords = [
-          'ai engineer',
-          'artificial intelligence',
-          'machine learning',
-          'ml engineer',
-          'full stack',
-          'fullstack',
-          'software engineer',
-          'software developer',
-          'lead engineer',
-          'senior engineer',
-          'principal engineer',
-          'staff engineer',
-          'tech lead',
-          'engineering manager',
-          'data scientist',
-          'data engineer'
+          "ai engineer",
+          "artificial intelligence",
+          "machine learning",
+          "ml engineer",
+          "full stack",
+          "fullstack",
+          "software engineer",
+          "software developer",
+          "lead engineer",
+          "senior engineer",
+          "principal engineer",
+          "staff engineer",
+          "tech lead",
+          "engineering manager",
+          "data scientist",
+          "data engineer",
         ];
-        return keywords.some(keyword => titleLower.includes(keyword));
+        return keywords.some((keyword) => titleLower.includes(keyword));
       });
 
       return { success: true, jobs: filteredJobs };
@@ -301,9 +295,9 @@ export const firecrawlService = {
         "1 - 3 years",
         "4 - 6 years",
         "7 - 9 years",
-        "> 10 years"
+        "> 10 years",
       ],
-      maxPages: 10 // Scrape 10 pages for comprehensive results
+      maxPages: 8, // Limit to 8 pages for tech roles
     });
   },
 
