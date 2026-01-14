@@ -43,7 +43,8 @@ async function scrapeAndExtract(
   urls: string[],
   platform: "google" | "indeed" | "jobstreet" | "careersgov",
   prompt: string,
-  actions?: any[]
+  actions?: any[],
+  timeout?: number
 ): Promise<Job[]> {
   const allJobs: Job[] = [];
 
@@ -52,6 +53,7 @@ async function scrapeAndExtract(
       const result = await firecrawl.scrapeUrl(url, {
         formats: ["extract"],
         actions: actions,
+        timeout: timeout || 90000, // Default 90 seconds, increased from default 60s
         extract: {
           schema: JOB_SCHEMA as any,
           prompt,
@@ -203,29 +205,83 @@ export const firecrawlService = {
     }
   },
 
-  async scrapeCareersGov(): Promise<ScrapeResult> {
+  async scrapeCareersGov(options?: {
+    department?: string;
+    jobType?: string;
+    experienceLevels?: string[];
+    maxPages?: number;
+  }): Promise<ScrapeResult> {
     try {
-      const url = "https://jobs.careers.gov.sg/";
+      // Build URL with filters
+      let url = "https://jobs.careers.gov.sg/";
+      const params = new URLSearchParams();
       
-      // Careers.gov.sg is a SPA and might require interaction to see more jobs if we don't have deep link pagination
-      // We will scroll aggressively to trigger any lazy loading
-      const actions = [
-        { type: "scroll", direction: "down" },
-        { type: "wait", milliseconds: 2000 },
-        { type: "scroll", direction: "down" },
-        { type: "wait", milliseconds: 2000 },
-        { type: "scroll", direction: "down" },
-        { type: "wait", milliseconds: 2000 }
-      ];
+      if (options?.department) {
+        params.append("d", options.department);
+      }
+      if (options?.jobType) {
+        params.append("t", options.jobType);
+      }
+      if (options?.experienceLevels && options.experienceLevels.length > 0) {
+        params.append("e", options.experienceLevels.join(";"));
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      // Optimize scrolling to avoid timeout:
+      // - Reduce wait time between scrolls
+      // - Default to 5 pages for reliable performance
+      const maxPages = Math.min(options?.maxPages || 5, 10); // Default 5, cap at 10 pages
+      const actions = [];
+      
+      // Strategy: Scroll more frequently with shorter waits
+      // This loads content faster while staying within timeout limits
+      for (let i = 0; i < maxPages; i++) {
+        actions.push(
+          { type: "scroll", direction: "down" },
+          { type: "wait", milliseconds: 1500 } // Reduced from 2000ms
+        );
+      }
+
+      // Calculate timeout: (scrolls * 1.5s + 20s buffer) in milliseconds
+      const estimatedTime = (maxPages * 1.5) + 20;
+      const timeout = Math.max(estimatedTime * 1000, 90000); // At least 90s
 
       const jobs = await scrapeAndExtract(
         [url],
         "careersgov",
-        "Extract all job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, Machine Learning, Data Science, and technology positions related to AI/ML.",
-        actions
+        "Extract ALL visible job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to the job detail page, and when it was posted. Focus on AI Engineer, Machine Learning Engineer, Full Stack Engineer, Full Stack Developer, Software Engineer, Lead Engineer, Senior Engineer, and related technical positions. Only include jobs in InfoComm, Technology, and New Media Communications.",
+        actions,
+        timeout
       );
 
-      return { success: true, jobs };
+      // Filter jobs to only include relevant technical roles
+      const filteredJobs = jobs.filter((job) => {
+        const titleLower = job.title.toLowerCase();
+        const keywords = [
+          'ai engineer',
+          'artificial intelligence',
+          'machine learning',
+          'ml engineer',
+          'full stack',
+          'fullstack',
+          'software engineer',
+          'software developer',
+          'lead engineer',
+          'senior engineer',
+          'principal engineer',
+          'staff engineer',
+          'tech lead',
+          'engineering manager',
+          'data scientist',
+          'data engineer'
+        ];
+        return keywords.some(keyword => titleLower.includes(keyword));
+      });
+
+      return { success: true, jobs: filteredJobs };
     } catch (error) {
       console.error("Careers.gov.sg scrape error:", error);
       return {
@@ -234,6 +290,22 @@ export const firecrawlService = {
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
+  },
+
+  // Specialized method for InfoComm & Technology jobs
+  async scrapeCareersGovTech(): Promise<ScrapeResult> {
+    return this.scrapeCareersGov({
+      department: "InfoComm, Technology, New Media Communications",
+      jobType: "Full-time",
+      experienceLevels: [
+        "0 - 1 year",
+        "1 - 3 years",
+        "4 - 6 years",
+        "7 - 9 years",
+        "> 10 years"
+      ],
+      maxPages: 5 // Optimized to 5 pages for better performance and reliability
+    });
   },
 
   async scrapeAll(): Promise<ScrapeResult> {

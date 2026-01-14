@@ -12,7 +12,8 @@ function App() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<JobStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [scraping, setScraping] = useState(false);
+  const [scrapingAll, setScrapingAll] = useState(false);
+  const [scrapingCareersGov, setScrapingCareersGov] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("");
   const [message, setMessage] = useState("");
@@ -77,8 +78,8 @@ function App() {
 
   const handleScrape = async () => {
     try {
-      setScraping(true);
-      setMessage("Scraping AI, Full Stack, and Lead Engineer jobs...");
+      setScrapingAll(true);
+      setMessage("Scraping AI, Full Stack, and Lead Engineer jobs from all sources...");
       const result = await api.scrapeJobs();
       setMessage(result.message);
       await fetchJobs();
@@ -86,7 +87,22 @@ function App() {
       console.error("Failed to scrape:", error);
       setMessage("Failed to scrape jobs");
     } finally {
-      setScraping(false);
+      setScrapingAll(false);
+    }
+  };
+
+  const handleScrapeCareersGovTech = async () => {
+    try {
+      setScrapingCareersGov(true);
+      setMessage("Scraping AI Engineer, Full Stack, and Software Engineer jobs from Careers.gov.sg (5 pages)...");
+      const result = await api.scrapePlatform("careersgov-tech");
+      setMessage(result.message);
+      await fetchJobs();
+    } catch (error) {
+      console.error("Failed to scrape Careers.gov.sg:", error);
+      setMessage("Failed to scrape Careers.gov.sg jobs");
+    } finally {
+      setScrapingCareersGov(false);
     }
   };
 
@@ -118,12 +134,27 @@ function App() {
                 </p>
               </div>
             </div>
-            <Button onClick={handleScrape} disabled={scraping}>
-              <RefreshCw
-                className={`h-4 w-4 ${scraping ? "animate-spin" : ""}`}
-              />
-              {scraping ? "Scraping..." : "Scrape Jobs"}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleScrapeCareersGovTech} 
+                disabled={scrapingCareersGov || scrapingAll} 
+                variant="outline"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${scrapingCareersGov ? "animate-spin" : ""}`}
+                />
+                {scrapingCareersGov ? "Scraping..." : "Careers.gov Tech"}
+              </Button>
+              <Button 
+                onClick={handleScrape} 
+                disabled={scrapingAll || scrapingCareersGov}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${scrapingAll ? "animate-spin" : ""}`}
+                />
+                {scrapingAll ? "Scraping..." : "Scrape All"}
+              </Button>
+            </div>
           </div>
         </div>
       </header>

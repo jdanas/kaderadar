@@ -55,7 +55,7 @@ export const api = {
   },
 
   async scrapePlatform(
-    platform: "google" | "indeed" | "jobstreet" | "careersgov"
+    platform: "google" | "indeed" | "jobstreet" | "careersgov" | "careersgov-tech"
   ): Promise<{ scraped: number; inserted: number; message: string }> {
     const res = await fetch(`${API_BASE}/jobs/scrape/${platform}`, {
       method: "POST",

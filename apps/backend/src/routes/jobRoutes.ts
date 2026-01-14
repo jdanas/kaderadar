@@ -145,7 +145,8 @@ router.post("/scrape/:platform", async (req: Request, res: Response) => {
       | "google"
       | "indeed"
       | "jobstreet"
-      | "careersgov";
+      | "careersgov"
+      | "careersgov-tech";
 
     let result;
     if (platform === "google") {
@@ -155,12 +156,17 @@ router.post("/scrape/:platform", async (req: Request, res: Response) => {
     } else if (platform === "jobstreet") {
       result = await firecrawlService.scrapeJobStreet();
     } else if (platform === "careersgov") {
-      result = await firecrawlService.scrapeCareersGov();
+      // Can accept custom options from request body
+      const options = req.body || {};
+      result = await firecrawlService.scrapeCareersGov(options);
+    } else if (platform === "careersgov-tech") {
+      // Optimized for InfoComm & Technology jobs
+      result = await firecrawlService.scrapeCareersGovTech();
     } else {
       res.status(400).json({
         success: false,
         error:
-          "Invalid platform. Use 'google', 'indeed', 'jobstreet', or 'careersgov'",
+          "Invalid platform. Use 'google', 'indeed', 'jobstreet', 'careersgov', or 'careersgov-tech'",
       });
       return;
     }
