@@ -292,10 +292,9 @@ export const firecrawlService = {
     }
   },
 
-  // Specialized method for InfoComm & Technology jobs
+  // Specialized method for tech jobs from Careers.gov.sg
   async scrapeCareersGovTech(): Promise<ScrapeResult> {
     return this.scrapeCareersGov({
-      department: "InfoComm, Technology, New Media Communications",
       jobType: "Full-time",
       experienceLevels: [
         "0 - 1 year",
@@ -304,7 +303,7 @@ export const firecrawlService = {
         "7 - 9 years",
         "> 10 years"
       ],
-      maxPages: 5 // Optimized to 5 pages for better performance and reliability
+      maxPages: 10 // Scrape 10 pages for comprehensive results
     });
   },
 

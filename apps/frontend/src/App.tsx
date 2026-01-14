@@ -94,7 +94,7 @@ function App() {
   const handleScrapeCareersGovTech = async () => {
     try {
       setScrapingCareersGov(true);
-      setMessage("Scraping AI Engineer, Full Stack, and Software Engineer jobs from Careers.gov.sg (5 pages)...");
+      setMessage("Scraping AI Engineer, Full Stack, and Software Engineer jobs from Careers.gov.sg (10 pages)...");
       const result = await api.scrapePlatform("careersgov-tech");
       setMessage(result.message);
       await fetchJobs();
