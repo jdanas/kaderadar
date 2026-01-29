@@ -14,6 +14,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [scrapingAll, setScrapingAll] = useState(false);
   const [scrapingCareersGov, setScrapingCareersGov] = useState(false);
+  const [scrapingJobSpy, setScrapingJobSpy] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("");
   const [message, setMessage] = useState("");
@@ -106,6 +107,21 @@ function App() {
     }
   };
 
+  const handleScrapeJobSpy = async () => {
+    try {
+      setScrapingJobSpy(true);
+      setMessage("Scraping jobs with JobSpy (Indeed & LinkedIn)...");
+      const result = await api.scrapePlatform("jobspy");
+      setMessage(result.message);
+      await fetchJobs();
+    } catch (error) {
+      console.error("Failed to scrape with JobSpy:", error);
+      setMessage("Failed to scrape jobs with JobSpy");
+    } finally {
+      setScrapingJobSpy(false);
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1); // Reset to page 1 on new search
@@ -136,8 +152,18 @@ function App() {
             </div>
             <div className="flex gap-2">
               <Button 
+                onClick={handleScrapeJobSpy} 
+                disabled={scrapingJobSpy || scrapingCareersGov || scrapingAll} 
+                variant="outline"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${scrapingJobSpy ? "animate-spin" : ""}`}
+                />
+                {scrapingJobSpy ? "Scraping..." : "JobSpy"}
+              </Button>
+              <Button 
                 onClick={handleScrapeCareersGovTech} 
-                disabled={scrapingCareersGov || scrapingAll} 
+                disabled={scrapingCareersGov || scrapingAll || scrapingJobSpy} 
                 variant="outline"
               >
                 <RefreshCw
@@ -147,7 +173,7 @@ function App() {
               </Button>
               <Button 
                 onClick={handleScrape} 
-                disabled={scrapingAll || scrapingCareersGov}
+                disabled={scrapingAll || scrapingCareersGov || scrapingJobSpy}
               >
                 <RefreshCw
                   className={`h-4 w-4 ${scrapingAll ? "animate-spin" : ""}`}
@@ -187,6 +213,9 @@ function App() {
               <option value="">All Sources</option>
               <option value="google">Google Jobs</option>
               <option value="indeed">Indeed</option>
+              <option value="linkedin">LinkedIn (JobSpy)</option>
+              <option value="ziprecruiter">ZipRecruiter (JobSpy)</option>
+              <option value="glassdoor">Glassdoor (JobSpy)</option>
               <option value="jobstreet">JobStreet</option>
               <option value="careersgov">Careers.gov.sg</option>
             </select>
