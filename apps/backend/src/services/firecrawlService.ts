@@ -38,6 +38,62 @@ const JOB_SCHEMA = {
   required: ["jobs"],
 };
 
+// Helper to check if a job posting is recent (within last 7 days)
+function isRecentPosting(postedDate?: string): boolean {
+  if (!postedDate) return true; // If no date, include by default
+  
+  const dateStr = postedDate.toLowerCase();
+  
+  // Check for relative dates indicating recent postings
+  const recentKeywords = [
+    "today",
+    "just posted",
+    "posted today",
+    "1 day ago",
+    "2 days ago",
+    "3 days ago",
+    "4 days ago",
+    "5 days ago",
+    "6 days ago",
+    "7 days ago",
+    "1 hour ago",
+    "2 hours ago",
+    "hours ago",
+    "minutes ago",
+    "active 1 day",
+    "active 2 days",
+    "active 3 days",
+    "active 4 days",
+    "active 5 days",
+    "active 6 days",
+    "active 7 days",
+  ];
+  
+  // Check if posted date contains any recent keyword
+  if (recentKeywords.some(keyword => dateStr.includes(keyword))) {
+    return true;
+  }
+  
+  // Reject if contains old date indicators
+  const oldKeywords = [
+    "2023",
+    "2022",
+    "2021",
+    "30+ days ago",
+    "month ago",
+    "months ago",
+    "weeks ago",
+    "week ago",
+  ];
+  
+  if (oldKeywords.some(keyword => dateStr.includes(keyword))) {
+    return false;
+  }
+  
+  // If we can't determine, include it (let user filter later)
+  return true;
+}
+
 // Helper to standardise scraping multiple URLs
 async function scrapeAndExtract(
   urls: string[],
@@ -77,17 +133,19 @@ async function scrapeAndExtract(
             }
           ).jobs || [];
 
-        const mappedJobs: Job[] = extractedJobs.map((job) => ({
-          title: job.title,
-          company: job.company,
-          location: job.location || "Singapore",
-          salary: job.salary,
-          description: job.description,
-          job_type: job.job_type,
-          source_url: job.job_url || url,
-          source_platform: platform,
-          posted_date: job.posted_date,
-        }));
+        const mappedJobs: Job[] = extractedJobs
+          .filter((job) => isRecentPosting(job.posted_date)) // Filter out old postings
+          .map((job) => ({
+            title: job.title,
+            company: job.company,
+            location: job.location || "Singapore",
+            salary: job.salary,
+            description: job.description,
+            job_type: job.job_type,
+            source_url: job.job_url || url,
+            source_platform: platform,
+            posted_date: job.posted_date,
+          }));
         allJobs.push(...mappedJobs);
       }
     } catch (error) {
@@ -102,8 +160,9 @@ async function scrapeAndExtract(
 export const firecrawlService = {
   async scrapeGoogleJobs(): Promise<ScrapeResult> {
     try {
+      // Add date_posted filter for jobs posted within last 24 hours (1 day)
       const url =
-        "https://www.google.com/search?q=AI+Engineer+OR+Machine+Learning+Engineer+OR+Full+Stack+Engineer+OR+Software+Engineer+OR+Full+Stack+Developer+jobs+in+Singapore&ibp=htl;jobs";
+        "https://www.google.com/search?q=AI+Engineer+OR+Machine+Learning+Engineer+OR+Full+Stack+Engineer+OR+Software+Engineer+OR+Full+Stack+Developer+jobs+in+Singapore&ibp=htl;jobs&chips=date_posted:today";
 
       // Google jobs often infinite scrolls, so we add scroll actions
       const actions = [
@@ -118,7 +177,7 @@ export const firecrawlService = {
       const jobs = await scrapeAndExtract(
         [url],
         "google",
-        "Extract all job listings from this Google Jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Machine Learning Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and Lead Engineer positions. Only include jobs located in Singapore.",
+        "Extract all job listings from this Google Jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Machine Learning Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and Lead Engineer positions. Only include jobs located in Singapore. IMPORTANT: Only extract jobs posted within the last 24 hours (today).",
         actions
       );
 
@@ -135,8 +194,9 @@ export const firecrawlService = {
 
   async scrapeIndeed(): Promise<ScrapeResult> {
     try {
+      // Add date filter for jobs posted within last 24 hours (fromage=1)
       const baseUrl =
-        "https://sg.indeed.com/jobs?q=AI+Engineer+OR+Full+Stack+Engineer+OR+Software+Engineer+OR+Full+Stack+Developer&l=Singapore";
+        "https://sg.indeed.com/jobs?q=AI+Engineer+OR+Full+Stack+Engineer+OR+Software+Engineer+OR+Full+Stack+Developer&l=Singapore&fromage=1";
 
       // Scrape first 2 pages
       const urls = [baseUrl, `${baseUrl}&start=10`];
@@ -152,7 +212,7 @@ export const firecrawlService = {
       const jobs = await scrapeAndExtract(
         urls,
         "indeed",
-        "Extract all job listings from this Indeed jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Look for job cards or list items. Focus on AI Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and Machine Learning Engineer roles. Only include jobs located in Singapore.",
+        "Extract all job listings from this Indeed jobs page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Look for job cards or list items. Focus on AI Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and Machine Learning Engineer roles. Only include jobs located in Singapore. IMPORTANT: Only extract jobs posted within the last 24 hours.",
         actions
       );
 
@@ -184,7 +244,7 @@ export const firecrawlService = {
       const jobs = await scrapeAndExtract(
         urls,
         "jobstreet",
-        "Extract all job listings from this JobStreet page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and related technical roles. Only include jobs located in Singapore.",
+        "Extract all job listings from this JobStreet page. For each job, get the title, company name, location, salary (if shown), brief description, job type, the direct URL to apply, and when it was posted. Focus on AI Engineer, Full Stack Engineer, Software Engineer, Full Stack Developer, and related technical roles. Only include jobs located in Singapore. IMPORTANT: Prioritize jobs posted within the last 24-48 hours (recent postings).",
         actions
       );
 
@@ -246,7 +306,7 @@ export const firecrawlService = {
       const jobs = await scrapeAndExtract(
         [url],
         "careersgov",
-        "Extract ALL visible job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to the job detail page, and when it was posted. Focus on AI Engineer, Machine Learning Engineer, Full Stack Engineer, Full Stack Developer, Software Engineer, Lead Engineer, Senior Engineer, and related technical positions. Only include jobs in InfoComm, Technology, and New Media Communications.",
+        "Extract ALL visible job listings from this Singapore government careers page. For each job, get the title, company/agency name, location, salary (if shown), brief description, job type, the direct URL to the job detail page, and when it was posted. Focus on AI Engineer, Machine Learning Engineer, Full Stack Engineer, Full Stack Developer, Software Engineer, Lead Engineer, Senior Engineer, and related technical positions. Only include jobs in InfoComm, Technology, and New Media Communications. IMPORTANT: Prioritize jobs posted within the last 24-48 hours (recent postings).",
         actions,
         timeout
       );
