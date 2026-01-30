@@ -66,7 +66,7 @@ export const jobSpyService = {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(params),
-        signal: AbortSignal.timeout(120000), // 2 minute timeout for scraping
+        signal: AbortSignal.timeout(300000), // 5 minute timeout for scraping
       });
 
       console.log(`📡 JobSpy response status: ${response.status}`);
@@ -109,7 +109,7 @@ export const jobSpyService = {
           source_url: job.source_url || "",
           source_platform: (job.source_platform ||
             "indeed") as Job["source_platform"],
-          posted_date: job.posted_date,
+          posted_date: job.posted_date || new Date().toISOString(),
         })) || [];
 
       console.log(`✅ Successfully mapped ${jobs.length} jobs`);
@@ -138,7 +138,7 @@ export const jobSpyService = {
         "AI Engineer OR Machine Learning Engineer OR Full Stack Engineer OR Software Engineer OR Full Stack Developer",
       location: "Singapore",
       site_name: ["indeed", "linkedin"],
-      results_wanted: 50,
+      results_wanted: 15,
       hours_old: 24,
       country_indeed: "Singapore",
     });

@@ -67,15 +67,15 @@ def scrape():
         transformed_jobs = []
         for job in jobs_list:
             transformed_job = {
-                "title": job.get("title", ""),
-                "company": job.get("company", ""),
-                "location": job.get("location", location),
+                "title": clean_nan(job.get("title")) or "",
+                "company": clean_nan(job.get("company")) or "",
+                "location": clean_nan(job.get("location")) or location,
                 "salary": format_salary(job),
-                "description": job.get("description", ""),
-                "job_type": job.get("job_type", ""),
-                "source_url": job.get("job_url", ""),
+                "description": clean_nan(job.get("description")) or "",
+                "job_type": clean_nan(job.get("job_type")) or "",
+                "source_url": clean_nan(job.get("job_url")) or "",
                 "source_platform": map_site_name(job.get("site", "")),
-                "posted_date": job.get("date_posted", ""),
+                "posted_date": clean_nan(job.get("date_posted")) or None,
             }
             transformed_jobs.append(transformed_job)
 
@@ -93,12 +93,19 @@ def scrape():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+def clean_nan(val):
+    """Convert NaN values to None"""
+    if isinstance(val, float) and val != val:  # Check for NaN
+        return None
+    return val
+
+
 def format_salary(job):
     """Format salary information from JobSpy format"""
-    min_amount = job.get("min_amount")
-    max_amount = job.get("max_amount")
-    interval = job.get("interval", "")
-    currency = job.get("currency", "")
+    min_amount = clean_nan(job.get("min_amount"))
+    max_amount = clean_nan(job.get("max_amount"))
+    interval = clean_nan(job.get("interval")) or ""
+    currency = clean_nan(job.get("currency")) or ""
 
     if not min_amount and not max_amount:
         return None

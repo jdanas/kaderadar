@@ -11,10 +11,10 @@ export interface Job {
     | "indeed"
     | "google"
     | "jobstreet"
+    | "mycareersfuture"
     | "careersgov"
     | "linkedin"
-    | "ziprecruiter"
-    | "glassdoor";
+    | "jobspy";
   posted_date?: string;
   scraped_at?: string;
   is_active?: boolean;
