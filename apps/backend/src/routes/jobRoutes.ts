@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { jobService } from "../services/jobService.js";
 import { firecrawlService } from "../services/firecrawlService.js";
+import { jobSpyService } from "../services/jobSpyService.js";
 import { calculatePagination } from "../utils/pagination.js";
 
 const router: ReturnType<typeof Router> = Router();
@@ -146,7 +147,8 @@ router.post("/scrape/:platform", async (req: Request, res: Response) => {
       | "indeed"
       | "jobstreet"
       | "careersgov"
-      | "careersgov-tech";
+      | "careersgov-tech"
+      | "jobspy";
 
     let result;
     if (platform === "google") {
@@ -162,11 +164,14 @@ router.post("/scrape/:platform", async (req: Request, res: Response) => {
     } else if (platform === "careersgov-tech") {
       // Optimized for InfoComm & Technology jobs
       result = await firecrawlService.scrapeCareersGovTech();
+    } else if (platform === "jobspy") {
+      // Use JobSpy service with current filters
+      result = await jobSpyService.scrapeWithCurrentFilters();
     } else {
       res.status(400).json({
         success: false,
         error:
-          "Invalid platform. Use 'google', 'indeed', 'jobstreet', 'careersgov', or 'careersgov-tech'",
+          "Invalid platform. Use 'google', 'indeed', 'jobstreet', 'careersgov', 'careersgov-tech', or 'jobspy'",
       });
       return;
     }

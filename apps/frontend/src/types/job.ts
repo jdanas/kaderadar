@@ -12,7 +12,9 @@ export interface Job {
     | "google"
     | "jobstreet"
     | "mycareersfuture"
-    | "careersgov";
+    | "careersgov"
+    | "linkedin"
+    | "jobspy";
   posted_date?: string;
   scraped_at?: string;
   is_active?: boolean;

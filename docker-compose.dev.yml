@@ -1,6 +1,17 @@
 version: "3.8"
 
 services:
+  jobspy:
+    build:
+      context: ./apps/jobspy-service
+      dockerfile: Dockerfile
+    container_name: kaderadar-jobspy
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+
   backend:
     build:
       context: ./apps/backend
@@ -13,10 +24,13 @@ services:
       - NODE_ENV=development
       - PORT=3001
       - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - JOBSPY_SERVICE_URL=http://jobspy:3002
     volumes:
       - ./apps/backend/src:/app/src
       - ./apps/backend/package.json:/app/package.json
       - backend-data:/app/data
+    depends_on:
+      - jobspy
     command: bun run dev
 
   frontend:
